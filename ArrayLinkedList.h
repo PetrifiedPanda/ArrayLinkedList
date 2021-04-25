@@ -30,6 +30,8 @@ class ArrayLinkedList {
     size_t node_count_;
     size_t tail_size_;
 
+    // Utility for copying, moving and freeing (Used in Constructors, and copy / move assignment operators)
+
     static void free_following_nodes(Node* start) {
         Node* it = start;
         while (it != nullptr) {
@@ -113,6 +115,8 @@ class ArrayLinkedList {
         other.tail_size_ = 0;
     }
 
+    // Constructors and Assignment operators
+
    public:
     ArrayLinkedList(size_t node_size = s_default_node_size_) :
         head_(nullptr),
@@ -148,6 +152,8 @@ class ArrayLinkedList {
         _move(std::move(other));
         return *this;
     }
+
+    // Getters
 
     size_t node_size() const {
         return node_size_;
@@ -403,6 +409,8 @@ class ArrayLinkedList {
 
     // TODO:: reverse iterators
 
+    // Utility that needs iterators (find, contains, erase)
+
    private:
     /*
     Implementation of logic for searching, for use with different iterator types
@@ -436,29 +444,29 @@ class ArrayLinkedList {
     }
 
    private:
-
-    static void shift_one_back(T* arr, size_t start_index, size_t size) {
+    // Shifts every item in this array from the start_index up to size shift_distance place forward
+    static void shift_forward(T* arr, size_t start_index, size_t size, size_t shift_distance) {
         for (size_t i = start_index; i < size; ++i)
-            arr[i - 1] = std::move(arr[i]);
+            arr[i - shift_distance] = std::move(arr[i]);
     }
 
    public:
 
-    // returns the iterator following the removed item
+    // removes the item at the given position and returns an iterator pointing to the item following the removed item
     iterator erase(iterator pos) { // TODO: const_iterator alternative
         size_t start_node_size = pos.current_node_->next == nullptr ? tail_size_ : node_size_;
-        shift_one_back(pos.current_node_->keys, pos.index_ + 1, start_node_size);
+        shift_forward(pos.current_node_->keys, pos.index_ + 1, start_node_size, 1);
 
         if (pos.current_node_->next != nullptr) {
             Node* it = pos.current_node_;
             while (it->next != nullptr) {
                 it->keys[node_size_ - 1] = std::move(it->next->keys[0]);
-                shift_one_back(it->next->keys, 1, node_size_);
+                shift_forward(it->next->keys, 1, node_size_, 1);
 
                 it = it->next;
             }
 
-            shift_one_back(it->keys, 1, tail_size_);
+            shift_forward(it->keys, 1, tail_size_, 1);
         }
 
         --tail_size_;
