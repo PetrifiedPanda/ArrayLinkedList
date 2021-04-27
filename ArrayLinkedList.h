@@ -69,6 +69,10 @@ class ArrayLinkedList {
         }
     }
 
+    /*
+    If 2 lists have the same node size, we only need to copy the contents of the nodes of the other list into this list 
+    and append the other nodes, or delete the nodes that are too much
+    */
     void _copy_same_node_size(const ArrayLinkedList<T>& other) {
         node_count_ = other.node_count_;
         tail_size_ = other.tail_size_;

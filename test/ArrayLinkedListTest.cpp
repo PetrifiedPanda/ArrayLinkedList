@@ -123,6 +123,13 @@ TEST_F(ArrayLinkedListTest, Copy) {
 
     for (const int& key : copy)
         EXPECT_EQ(key, 100);
+
+    // clear copy and assign copy_of_copy again to test if assignment works with empty lists as well
+    copy.clear();
+    copy = copy_of_copy;
+
+    for (const int& key : copy)
+        EXPECT_EQ(key, 100);
 }
 
 TEST_F(ArrayLinkedListTest, Move) {
