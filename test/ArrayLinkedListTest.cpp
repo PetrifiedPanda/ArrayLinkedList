@@ -250,4 +250,28 @@ TEST_F(ArrayLinkedListTest, Size) {
     }
 
     EXPECT_EQ(list.size(), 0);
+
+    for (int i = 0; i < prev_size; ++i) {
+        EXPECT_EQ(list.size(), i);
+        list.push_back(rand());
+    }
+
+    EXPECT_EQ(list.size(), prev_size);
+
+    ArrayLinkedList<int> other;
+    size_t other_size = 5;
+    for (size_t i = 0; i < other_size; ++i)
+        other.push_back(rand());
+
+    EXPECT_EQ(other.size(), other_size);
+
+    ArrayLinkedList<int> list_copy = list;
+    list = other;
+    EXPECT_EQ(list.size(), other.size());
+
+    list = std::move(list_copy);
+    EXPECT_EQ(list.size(), prev_size);
+
+    list = std::move(other);
+    EXPECT_EQ(list.size(), other_size);
 }
