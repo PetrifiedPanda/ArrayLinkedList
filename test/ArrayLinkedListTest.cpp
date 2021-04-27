@@ -266,12 +266,15 @@ TEST_F(ArrayLinkedListTest, Size) {
     EXPECT_EQ(other.size(), other_size);
 
     ArrayLinkedList<int> list_copy = list;
+    EXPECT_EQ(list_copy.size(), list.size());
     list = other;
     EXPECT_EQ(list.size(), other.size());
 
     list = std::move(list_copy);
+    EXPECT_EQ(list_copy.size(), 0);
     EXPECT_EQ(list.size(), prev_size);
 
     list = std::move(other);
+    EXPECT_EQ(other.size(), 0);
     EXPECT_EQ(list.size(), other_size);
 }
