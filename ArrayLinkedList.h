@@ -484,9 +484,6 @@ class ArrayLinkedList {
         return pos;
     }
 
-    template <typename ItType>
-    ItType erase_range_template(ItType start,)
-
    public:
 
     // removes the item at the given position and returns an iterator pointing to the item following the removed item
