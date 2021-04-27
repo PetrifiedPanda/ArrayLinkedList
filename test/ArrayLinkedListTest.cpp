@@ -17,6 +17,10 @@ struct ArrayLinkedListTest : public testing::Test {
     }
 };
 
+/*
+Tests the given iterator type (must be a forward iterator)
+The list should be unchanged after the function call (despite the list being changed in the process)
+*/
 template <typename ItType>
 void iterator_test(ArrayLinkedList<int>& list) {
     ItType it = list.begin();
