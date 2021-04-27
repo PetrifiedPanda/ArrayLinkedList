@@ -444,16 +444,18 @@ class ArrayLinkedList {
     }
 
    private:
-    // Shifts every item in this array from the start_index up to size shift_distance place forward
+    // Shifts every item in this array from the start_index up to size shift_distance places forward
     static void shift_forward(T* arr, size_t start_index, size_t size, size_t shift_distance) {
         for (size_t i = start_index; i < size; ++i)
             arr[i - shift_distance] = std::move(arr[i]);
     }
 
-   public:
-
-    // removes the item at the given position and returns an iterator pointing to the item following the removed item
-    iterator erase(iterator pos) { // TODO: const_iterator alternative
+    /*
+    Implements logic for deleting a single item. This abstracts from the returned and passed iterator type in order to
+    not implenment the same logic twice
+    */
+    template <typename ItType>
+    ItType erase_template(ItType pos) {
         size_t start_node_size = pos.current_node_->next == nullptr ? tail_size_ : node_size_;
         shift_forward(pos.current_node_->keys, pos.index_ + 1, start_node_size, 1);
 
@@ -480,6 +482,20 @@ class ArrayLinkedList {
                 return end();
         }
         return pos;
+    }
+
+    template <typename ItType>
+    ItType erase_range_template(ItType start,)
+
+   public:
+
+    // removes the item at the given position and returns an iterator pointing to the item following the removed item
+    iterator erase(iterator pos) {
+        return erase_template(pos);
+    }
+
+    const_iterator erase(const_iterator pos) {
+        return erase_template(pos);
     }
 
     // TODO: Range deletion

@@ -198,10 +198,15 @@ TEST_F(ArrayLinkedListTest, Indexing) {
     }
 }
 
-TEST_F(ArrayLinkedListTest, Erase) {
+/*
+This is the erase test abstracted for different iterator types (only forward iterators) to make
+testing the versions of erase with different iterators easier to test
+*/
+template <typename ItType>
+void erase_iterator_template(ArrayLinkedList<int>& list) {
     size_t prev_size = list.size();
-    auto it = list.find(40);
-    auto after_it = list.erase(it);
+    ItType it = list.find(40);
+    ItType after_it = list.erase(it);
     EXPECT_EQ(*after_it, 41);
 
     for (int i = 41; i < 50; ++i) {
@@ -219,6 +224,13 @@ TEST_F(ArrayLinkedListTest, Erase) {
     EXPECT_EQ(after_it, list.end());
 
     EXPECT_EQ(list.size(), prev_size - 1);
+}
+
+TEST_F(ArrayLinkedListTest, Erase) {
+    ArrayLinkedList<int> list_copy(list);
+    erase_iterator_template<ArrayLinkedList<int>::iterator>(list);
+    list = std::move(list_copy);
+    erase_iterator_template<ArrayLinkedList<int>::const_iterator>(list);
 }
 
 TEST_F(ArrayLinkedListTest, Size) {
