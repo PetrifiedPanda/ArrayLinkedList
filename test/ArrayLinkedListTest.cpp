@@ -231,6 +231,11 @@ void erase_iterator_template(ArrayLinkedList<int>& list) {
     EXPECT_EQ(after_it, list.end());
 
     EXPECT_EQ(list.size(), prev_size - 1);
+
+    list.resize(1);
+    list.erase(list.begin());
+    EXPECT_EQ(list.size(), 0);
+    EXPECT_EQ(list.begin(), list.end());
 }
 
 TEST_F(ArrayLinkedListTest, Erase) {

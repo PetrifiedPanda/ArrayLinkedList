@@ -481,16 +481,12 @@ class ArrayLinkedList {
         size_t start_node_size = pos.current_node_->next == nullptr ? tail_size_ : node_size_;
         shift_forward(pos.current_node_->keys, pos.index_ + 1, start_node_size, 1);
 
-        if (pos.current_node_->next != nullptr) {
-            Node* it = pos.current_node_;
-            while (it->next != nullptr) {
-                it->keys[node_size_ - 1] = std::move(it->next->keys[0]);
-                shift_forward(it->next->keys, 1, node_size_, 1);
+        Node* it = pos.current_node_;
+        while (it->next != nullptr) {
+            it->keys[node_size_ - 1] = std::move(it->next->keys[0]);
+            shift_forward(it->next->keys, 1, node_size_, 1);
 
-                it = it->next;
-            }
-
-            shift_forward(it->keys, 1, tail_size_, 1);
+            it = it->next;
         }
 
         --tail_size_;
