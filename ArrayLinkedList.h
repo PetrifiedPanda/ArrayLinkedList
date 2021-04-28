@@ -30,7 +30,87 @@ class ArrayLinkedList {
     size_t node_count_;
     size_t tail_size_;
 
-    // Utility for copying, moving and freeing (Used in Constructors, and copy / move assignment operators)
+    // Iterator class declarations
+
+   public:
+
+    class const_iterator {
+        friend class ArrayLinkedList<T>;
+       protected:
+        Node* current_node_;
+        size_t index_;
+        size_t node_size_;
+        const size_t* tail_size_;
+
+        const_iterator(Node* currentNode, size_t index, size_t node_size, const size_t* tail_size) : 
+            current_node_(currentNode), 
+            index_(index),
+            node_size_(node_size),
+            tail_size_(tail_size) {}
+       public:
+        const_iterator() : 
+            current_node_(nullptr), 
+            index_(0), 
+            node_size_(0), 
+            tail_size_(nullptr) {}
+
+        const_iterator& operator++() {
+            if ((current_node_->next == nullptr && index_ < *tail_size_ - 1) || (current_node_->next != nullptr && index_ < node_size_ - 1)) {
+                ++index_;
+            } else {
+                current_node_ = current_node_->next;
+                index_ = 0;
+            }
+            return *this;
+        }
+
+        const_iterator& operator--() {
+            if (index_ > 0) {
+                --index_;
+            } else {
+                current_node_ = current_node_->prev;
+                index_ = node_size_ - 1;
+            }
+            return *this;
+        }
+
+        bool operator==(const const_iterator& other) const {
+            return current_node_ == other.current_node_ && index_ == other.index_;
+        }
+
+        bool operator!=(const_iterator other) const {
+            return !(*this == other);
+        }
+
+        const T& operator*() const {
+            return current_node_->keys[index_];
+        }
+
+        const T* operator->() const {
+            return &current_node_->keys[index_];
+        }
+    };
+
+    class iterator : public const_iterator {
+        friend class ArrayLinkedList<T>;
+
+        iterator(Node* currentNode, size_t index, size_t node_size, const size_t* tail_size) : 
+            const_iterator(currentNode, index, node_size, tail_size) {}
+       public:
+        T& operator*() {
+            return this->current_node_->keys[this->index_];
+        }
+
+        T* operator->() {
+            return &this->current_node_->keys[this->index_];
+        }
+    };
+
+    // TODO:: reverse iterators
+
+    // Utility for copying, moving and freeing (Used in Constructors and copy / move assignment operators)
+
+   private:
 
     static void free_following_nodes(Node* start) {
         Node* it = start;
@@ -122,6 +202,7 @@ class ArrayLinkedList {
     // Constructors and Assignment operators
 
    public:
+
     explicit ArrayLinkedList(size_t node_size = s_default_node_size_) :
         head_(nullptr),
         tail_(nullptr),
@@ -190,9 +271,30 @@ class ArrayLinkedList {
         return tail_->keys[tail_size_ - 1];
     }
 
-    void clear() {
-        _free();
-        head_ = tail_ = nullptr;
+    // Functions for getting iterators
+
+    const_iterator cbegin() const {
+        return const_iterator(head_, 0, node_size_, &tail_size_);
+    }
+
+    const_iterator cend() const {
+        return const_iterator(nullptr, 0, node_size_, &tail_size_);
+    }
+
+    const_iterator begin() const {
+        return cbegin();
+    }
+
+    const_iterator end() const {
+        return cend();
+    }
+
+    iterator begin() {
+        return iterator(head_, 0, node_size_, &tail_size_);
+    }
+
+    iterator end() {
+        return iterator(nullptr, 0, node_size_, &tail_size_);
     }
 
    private:
@@ -219,6 +321,42 @@ class ArrayLinkedList {
         return get_item_at_index(index);
     }
 
+    // find / contains methods
+
+   private:
+    /*
+    Implementation of logic for searching, for use with different iterator types
+    Returns a node pointer and the index of the key in the given node
+    */
+    std::pair<Node*, size_t> find_key(const T& key) const {
+        for (Node* it = head_; it != nullptr; it = it->next) {
+            size_t size = it->next == nullptr ? tail_size_ : node_size_;
+            for (size_t i = 0; i < size; ++i) {
+                if (it->keys[i] == key)
+                    return std::make_pair(it, i);
+            }
+        }
+
+        return std::make_pair(nullptr, 0);
+    }
+
+   public:
+    const_iterator find(const T& key) const {
+        auto [node, index] = find_key(key);
+        return const_iterator(node, index, node_size_, &tail_size_);
+    }
+
+    iterator find(const T& key) {
+        auto [node, index] = find_key(key);
+        return iterator(node, index, node_size_, &tail_size_);
+    }
+
+    bool contains(const T& key) const {
+        return find(key) != end();
+    }
+
+    // resize / clear
+
     void resize(size_t new_size, const T& fill_item = T()) {
 	    if (new_size < size()) {
             while (size()  > new_size) {
@@ -242,6 +380,14 @@ class ArrayLinkedList {
             }
         }
     }
+
+    void clear() {
+        _free();
+        head_ = tail_ = nullptr;
+    }
+
+    // Functions that add items
+
    private:
     /*
     Implements logic for appending a new element. The actual insertion is passed as a function that takes the node where the key is to be inserted
@@ -306,6 +452,8 @@ class ArrayLinkedList {
         --node_count_;
     }
 
+    // Deletion functions
+
    public:
 
     void pop_back() {
@@ -315,138 +463,6 @@ class ArrayLinkedList {
         else {
             remove_last_node();
         }
-    }
-
-    class const_iterator {
-        friend class ArrayLinkedList<T>;
-       protected:
-        Node* current_node_;
-        size_t index_;
-        size_t node_size_;
-        const size_t* tail_size_;
-
-        const_iterator(Node* currentNode, size_t index, size_t node_size, const size_t* tail_size) : 
-            current_node_(currentNode), 
-            index_(index),
-            node_size_(node_size),
-            tail_size_(tail_size) {}
-       public:
-        const_iterator() : 
-            current_node_(nullptr), 
-            index_(0), 
-            node_size_(0), 
-            tail_size_(nullptr) {}
-
-        const_iterator& operator++() {
-            if ((current_node_->next == nullptr && index_ < *tail_size_ - 1) || (current_node_->next != nullptr && index_ < node_size_ - 1)) {
-                ++index_;
-            } else {
-                current_node_ = current_node_->next;
-                index_ = 0;
-            }
-            return *this;
-        }
-
-        const_iterator& operator--() {
-            if (index_ > 0) {
-                --index_;
-            } else {
-                current_node_ = current_node_->prev;
-                index_ = node_size_ - 1;
-            }
-            return *this;
-        }
-
-        bool operator==(const const_iterator& other) const {
-            return current_node_ == other.current_node_ && index_ == other.index_;
-        }
-
-        bool operator!=(const_iterator other) const {
-            return !(*this == other);
-        }
-
-        const T& operator*() const {
-            return current_node_->keys[index_];
-        }
-
-        const T* operator->() const {
-            return &current_node_->keys[index_];
-        }
-    };
-
-    const_iterator cbegin() const {
-        return const_iterator(head_, 0, node_size_, &tail_size_);
-    }
-
-    const_iterator cend() const {
-        return const_iterator(nullptr, 0, node_size_, &tail_size_);
-    }
-
-    const_iterator begin() const {
-        return cbegin();
-    }
-
-    const_iterator end() const {
-        return cend();
-    }
-
-    class iterator : public const_iterator {
-        friend class ArrayLinkedList<T>;
-
-        iterator(Node* currentNode, size_t index, size_t node_size, const size_t* tail_size) : 
-            const_iterator(currentNode, index, node_size, tail_size) {}
-       public:
-        T& operator*() {
-            return this->current_node_->keys[this->index_];
-        }
-
-        T* operator->() {
-            return &this->current_node_->keys[this->index_];
-        }
-    };
-
-    iterator begin() {
-        return iterator(head_, 0, node_size_, &tail_size_);
-    }
-
-    iterator end() {
-        return iterator(nullptr, 0, node_size_, &tail_size_);
-    }
-
-    // TODO:: reverse iterators
-
-    // Utility that needs iterators (find, contains, erase)
-
-   private:
-    /*
-    Implementation of logic for searching, for use with different iterator types
-    Returns a node pointer and the index of the key in the given node
-    */
-    std::pair<Node*, size_t> find_key(const T& key) const {
-        for (Node* it = head_; it != nullptr; it = it->next) {
-            size_t size = it->next == nullptr ? tail_size_ : node_size_;
-            for (size_t i = 0; i < size; ++i) {
-                if (it->keys[i] == key)
-                    return std::make_pair(it, i);
-            }
-        }
-
-        return std::make_pair(nullptr, 0);
-    }
-
-   public:
-    const_iterator find(const T& key) const {
-        auto [node, index] = find_key(key);
-        return const_iterator(node, index, node_size_, &tail_size_);
-    }
-
-    iterator find(const T& key) {
-        auto [node, index] = find_key(key);
-        return iterator(node, index, node_size_, &tail_size_);
-    }
-
-    bool contains(const T& key) const {
-        return find(key) != end();
     }
 
    private:
