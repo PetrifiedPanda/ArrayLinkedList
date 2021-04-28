@@ -98,6 +98,10 @@ TEST_F(ArrayLinkedListTest, Resize) {
 
     // Run the iterator test again after resizing the list to the same size as before
     iterator_test<ArrayLinkedList<int>::iterator>(list);
+
+    list.resize(0);
+    EXPECT_EQ(list.size(), 0);
+    EXPECT_EQ(list.begin(), list.end());
 }
 
 TEST_F(ArrayLinkedListTest, Copy) {
