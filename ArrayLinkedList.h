@@ -78,7 +78,7 @@ class ArrayLinkedList {
             return current_node_ == other.current_node_ && index_ == other.index_;
         }
 
-        bool operator!=(const_iterator other) const {
+        bool operator!=(const const_iterator& other) const {
             return !(*this == other);
         }
 
