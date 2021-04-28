@@ -122,7 +122,7 @@ class ArrayLinkedList {
     // Constructors and Assignment operators
 
    public:
-    ArrayLinkedList(size_t node_size = s_default_node_size_) :
+    explicit ArrayLinkedList(size_t node_size = s_default_node_size_) :
         head_(nullptr),
         tail_(nullptr),
         node_size_(node_size),
