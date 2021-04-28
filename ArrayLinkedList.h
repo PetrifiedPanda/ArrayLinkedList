@@ -199,16 +199,27 @@ class ArrayLinkedList {
         other.tail_size_ = 0;
     }
 
+    void _init(size_t node_size) {
+        head_ = nullptr;
+        tail_ = nullptr;
+        node_size_ = node_size;
+        node_count_ = 0;
+        tail_size_ = 0;
+    }
+
+    void _init_list(std::initializer_list<T> list, size_t node_size) {
+        _init(node_size);
+        for (const auto& item : list)
+            push_back(item);
+    }
+
     // Constructors and Assignment operators
 
    public:
 
-    explicit ArrayLinkedList(size_t node_size = s_default_node_size_) :
-        head_(nullptr),
-        tail_(nullptr),
-        node_size_(node_size),
-        node_count_(0),
-        tail_size_(0) {}
+    explicit ArrayLinkedList(size_t node_size = s_default_node_size_)  {
+        _init(node_size);
+    }
 
     ArrayLinkedList(const ArrayLinkedList<T>& other) {
         _copy(other);
@@ -216,6 +227,10 @@ class ArrayLinkedList {
 
     ArrayLinkedList(ArrayLinkedList<T>&& other) {
         _move(std::move(other));
+    }
+
+    ArrayLinkedList(std::initializer_list<T> init, size_t node_size = s_default_node_size_) {
+        _init_list(init, node_size);
     }
 
     ~ArrayLinkedList() {
@@ -235,6 +250,12 @@ class ArrayLinkedList {
     ArrayLinkedList<T>& operator=(ArrayLinkedList<T>&& other) {
         _free();
         _move(std::move(other));
+        return *this;
+    }
+
+    ArrayLinkedList<T>& operator=(std::initializer_list<T> list) {
+        _free();
+        _init_list(list, node_size_);
         return *this;
     }
 

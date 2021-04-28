@@ -287,3 +287,36 @@ TEST_F(ArrayLinkedListTest, Size) {
     EXPECT_EQ(other.size(), 0);
     EXPECT_EQ(list.size(), other_size);
 }
+
+TEST_F(ArrayLinkedListTest, InitializerList) {
+    auto init_list = {1, 2, 3, 4, 5, 6};
+
+    // Constructor test
+    ArrayLinkedList<int> test_list(init_list);
+    EXPECT_EQ(test_list.size(), init_list.size());
+
+    auto init_list_it = init_list.begin();
+    auto list_it = test_list.begin();
+    while (init_list_it != init_list.end() && list_it != test_list.end()) {
+        EXPECT_EQ(*list_it, *init_list_it);
+        ++init_list_it;
+        ++list_it;
+    }
+
+    EXPECT_EQ(init_list_it, init_list.end());
+    EXPECT_EQ(list_it, test_list.end());
+
+    // Assignment operator test
+    list = init_list;
+
+    init_list_it = init_list.begin();
+    list_it = list.begin();
+    while (init_list_it != init_list.end() && list_it != list.end()) {
+        EXPECT_EQ(*list_it, *init_list_it);
+        ++init_list_it;
+        ++list_it;
+    }
+
+    EXPECT_EQ(init_list_it, init_list.end());
+    EXPECT_EQ(list_it, list.end());
+}
