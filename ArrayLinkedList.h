@@ -281,11 +281,13 @@ class ArrayLinkedList {
     }
 
     template <typename... Args>
-    void emplace_back(Args... args) {
+    T& emplace_back(Args&&... args) {
         push_back_template([&](Node* node) {
             node->keys[tail_size_] = T(args...);
             ++tail_size_;
         });
+
+        return back();
     }
 
    private:
