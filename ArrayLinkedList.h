@@ -106,7 +106,7 @@ class ArrayLinkedList {
 
         #if !constant
         T& operator*() {
-            return this->current_node_->keys[this->index_];
+            return current_node_->keys[index_];
         }
         #endif
 
@@ -116,7 +116,7 @@ class ArrayLinkedList {
 
         #if !constant
         T* operator->() {
-            return &this->current_node_->keys[this->index_];
+            return &current_node_->keys[index_];
         }
         #endif
     };
