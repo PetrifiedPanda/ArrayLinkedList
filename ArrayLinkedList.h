@@ -32,53 +32,73 @@ class ArrayLinkedList {
 
     // Iterator class declarations
 
-   public:
-
-    class const_iterator {
+   private:
+    template <bool constant, bool reverse>
+    class Iterator {
         friend class ArrayLinkedList<T>;
-       protected:
+
         Node* current_node_;
         size_t index_;
         size_t node_size_;
         const size_t* tail_size_;
 
-        const_iterator(Node* currentNode, size_t index, size_t node_size, const size_t* tail_size) : 
-            current_node_(currentNode), 
+        Iterator(Node* current_node, size_t index, size_t node_size, const size_t* tail_size) :
+            current_node_(current_node), 
             index_(index),
             node_size_(node_size),
             tail_size_(tail_size) {}
        public:
-        const_iterator() : 
-            current_node_(nullptr), 
-            index_(0), 
-            node_size_(0), 
+        Iterator() :
+            current_node_(nullptr),
+            index_(0),
+            node_size_(0),
             tail_size_(nullptr) {}
 
-        const_iterator& operator++() {
+       private:
+        inline void next_item() {
             if ((current_node_->next == nullptr && index_ < *tail_size_ - 1) || (current_node_->next != nullptr && index_ < node_size_ - 1)) {
                 ++index_;
             } else {
                 current_node_ = current_node_->next;
                 index_ = 0;
             }
-            return *this;
         }
 
-        const_iterator& operator--() {
+        inline void prev_item() {
             if (index_ > 0) {
                 --index_;
             } else {
                 current_node_ = current_node_->prev;
                 index_ = node_size_ - 1;
             }
+        }
+
+       public:
+        Iterator& operator++() {
+            #if reverse
+            prev_item();
+            #else
+            next_item();
+            #endif
             return *this;
         }
 
-        bool operator==(const const_iterator& other) const {
+        Iterator& operator--() {
+            #if reverse
+            next_item();
+            #else
+            prev_item();
+            #endif
+            return *this;
+        }
+
+        template <bool param1, bool param2>
+        bool operator==(const Iterator<param1, param2>& other) const {
             return current_node_ == other.current_node_ && index_ == other.index_;
         }
 
-        bool operator!=(const const_iterator& other) const {
+        template <bool param1, bool param2>
+        bool operator!=(const Iterator<param1, param2>& other) const {
             return !(*this == other);
         }
 
@@ -86,25 +106,30 @@ class ArrayLinkedList {
             return current_node_->keys[index_];
         }
 
-        const T* operator->() const {
-            return &current_node_->keys[index_];
-        }
-    };
-
-    class iterator : public const_iterator {
-        friend class ArrayLinkedList<T>;
-
-        iterator(Node* currentNode, size_t index, size_t node_size, const size_t* tail_size) : 
-            const_iterator(currentNode, index, node_size, tail_size) {}
-       public:
+        #if !constant
         T& operator*() {
             return this->current_node_->keys[this->index_];
         }
+        #endif
 
+        const T* operator->() const {
+            return &current_node_->keys[index_];
+        }
+
+        #if !constant
         T* operator->() {
             return &this->current_node_->keys[this->index_];
         }
+        #endif
     };
+
+   public:
+
+   using iterator = Iterator<false, false>;
+   using const_iterator = Iterator<true, false>;
+
+   using reverse_iterator = Iterator<false, true>;
+   using const_reverse_iterator = Iterator<true, true>;
 
     // TODO:: reverse iterators
 
@@ -294,28 +319,36 @@ class ArrayLinkedList {
 
     // Functions for getting iterators
 
-    const_iterator cbegin() const {
-        return const_iterator(head_, 0, node_size_, &tail_size_);
-    }
-
-    const_iterator cend() const {
-        return const_iterator(nullptr, 0, node_size_, &tail_size_);
-    }
-
-    const_iterator begin() const {
-        return cbegin();
-    }
-
-    const_iterator end() const {
-        return cend();
-    }
-
-    iterator begin() {
+    iterator begin() noexcept {
         return iterator(head_, 0, node_size_, &tail_size_);
     }
 
-    iterator end() {
+    iterator end() noexcept {
         return iterator(nullptr, 0, node_size_, &tail_size_);
+    }
+
+    const_iterator cbegin() const noexcept {
+        return const_iterator(head_, 0, node_size_, &tail_size_);
+    }
+
+    const_iterator cend() const noexcept {
+        return const_iterator(nullptr, 0, node_size_, &tail_size_);
+    }
+
+    const_iterator begin() const noexcept {
+        return cbegin();
+    }
+
+    const_iterator end() const noexcept {
+        return cend();
+    }
+
+    reverse_iterator rbegin() noexcept {
+        return reverse_iterator(tail_, tail_size_ - 1, node_size_, &tail_size_);
+    }
+
+    reverse_iterator rend() noexcept {
+        return reverse_iterator(nullptr, 0, node_size_, &tail_size_);
     }
 
    private:
@@ -498,7 +531,7 @@ class ArrayLinkedList {
     not implenment the same logic twice
     */
     template <typename ItType>
-    ItType erase_template(ItType pos) {
+    ItType erase_template(ItType pos, ItType end) {
         size_t start_node_size = pos.current_node_->next == nullptr ? tail_size_ : node_size_;
         shift_forward(pos.current_node_->keys, pos.index_ + 1, start_node_size, 1);
 
@@ -519,7 +552,7 @@ class ArrayLinkedList {
             remove_last_node();
 
             if (return_end)
-                return end();
+                return end;
         }
         return pos;
     }
@@ -528,11 +561,11 @@ class ArrayLinkedList {
 
     // removes the item at the given position and returns an iterator pointing to the item following the removed item
     iterator erase(iterator pos) {
-        return erase_template(pos);
+        return erase_template(pos, end());
     }
 
     const_iterator erase(const_iterator pos) {
-        return erase_template(pos);
+        return erase_template(pos, cend());
     }
 
     // TODO: Range deletion
