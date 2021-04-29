@@ -55,7 +55,7 @@ class ArrayLinkedList {
             tail_size_(nullptr) {}
 
        private:
-        inline void next_item() {
+        void next_item() {
             if ((current_node_->next == nullptr && index_ < *tail_size_ - 1) || (current_node_->next != nullptr && index_ < node_size_ - 1)) {
                 ++index_;
             } else {
@@ -64,7 +64,7 @@ class ArrayLinkedList {
             }
         }
 
-        inline void prev_item() {
+        void prev_item() {
             if (index_ > 0) {
                 --index_;
             } else {
@@ -75,20 +75,18 @@ class ArrayLinkedList {
 
        public:
         Iterator& operator++() {
-            #if reverse
-            prev_item();
-            #else
-            next_item();
-            #endif
+            if constexpr (reverse)
+                prev_item();
+            else
+                next_item();
             return *this;
         }
 
         Iterator& operator--() {
-            #if reverse
-            next_item();
-            #else
-            prev_item();
-            #endif
+            if constexpr (reverse)
+                next_item();
+            else
+                prev_item();
             return *this;
         }
 
@@ -130,8 +128,6 @@ class ArrayLinkedList {
 
    using reverse_iterator = Iterator<false, true>;
    using const_reverse_iterator = Iterator<true, true>;
-
-    // TODO:: reverse iterators
 
     // Utility for copying, moving and freeing (Used in Constructors and copy / move assignment operators)
 
@@ -348,7 +344,15 @@ class ArrayLinkedList {
     }
 
     reverse_iterator rend() noexcept {
-        return reverse_iterator(nullptr, 0, node_size_, &tail_size_);
+        return reverse_iterator(nullptr, node_size_ - 1, node_size_, &tail_size_);
+    }
+
+    const_reverse_iterator crbegin() const noexcept {
+        return const_reverse_iterator(tail_, tail_size_ - 1, node_size_, &tail_size_);
+    }
+
+    const_reverse_iterator crend() const noexcept {
+        return const_reverse_iterator(nullptr, node_size_ - 1, node_size_, &tail_size_);
     }
 
    private:
