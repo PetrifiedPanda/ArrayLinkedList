@@ -28,7 +28,7 @@ void forward_iterator_test(ArrayLinkedList<int>& list, Func1 begin_func, Func2 e
     ItType it = begin_func(list);
 
     for (int i = 0; i < 50; ++i) {
-        ASSERT_EQ(*it, i);
+        EXPECT_EQ(*it, i);
         ++it;
     }
 
@@ -36,56 +36,110 @@ void forward_iterator_test(ArrayLinkedList<int>& list, Func1 begin_func, Func2 e
     list.push_back(30);
 
     for (int i = 0; i < 50; ++i) {
-        ASSERT_EQ(*it, i);
+        EXPECT_EQ(*it, i);
         ++it;
     }
 
-    ASSERT_EQ(*it, 10000);
+    EXPECT_EQ(*it, 10000);
     ++it;
-    ASSERT_EQ(*it, 30);
+    EXPECT_EQ(*it, 30);
 
     ItType itCopy = it;
     ++itCopy;
-    ASSERT_EQ(itCopy, end_func(list));
+    EXPECT_EQ(itCopy, end_func(list));
     ----it;
 
     // Go through backwards to test decrementing
 
     for (int i = 49; i > -1; --i) {
-        ASSERT_EQ(*it, i);
+        EXPECT_EQ(*it, i);
         --it;
     }
 
     // revert the push_back from before so the list is in the same state as before the function call
     list.pop_back(); 
-    ASSERT_EQ(list.back(), 10000);
+    EXPECT_EQ(list.back(), 10000);
 
     for (int i = 49; i > -1; --i) {
-        ASSERT_EQ(*it, i);
+        EXPECT_EQ(*it, i);
         if (i != 0)
             --it;
     }
 
-    ASSERT_EQ(it, begin_func(list));
+    EXPECT_EQ(it, begin_func(list));
 }
 
 
-TEST_F(ArrayLinkedListTest, Iterators) {
+TEST_F(ArrayLinkedListTest, ForwardIterators) {
     forward_iterator_test<ArrayLinkedList<int>::iterator>(list, 
-    [](ArrayLinkedList<int>& param) {
+    [] (ArrayLinkedList<int>& param) {
         return param.begin();
     },
-    [](ArrayLinkedList<int>& param) {
+    [] (ArrayLinkedList<int>& param) {
         return param.end();
     });
 
     forward_iterator_test<ArrayLinkedList<int>::const_iterator>(list,
-    [](const ArrayLinkedList<int>& param) {
+    [] (const ArrayLinkedList<int>& param) {
         return param.cbegin();
     },
-    [](const ArrayLinkedList<int>& param) {
+    [] (const ArrayLinkedList<int>& param) {
         return param.cend();
     });
+
+    auto it = list.begin();
+    *it = 2;
+    EXPECT_EQ(*it, 2);
+    EXPECT_EQ(list.front(), 2);
+}
+
+/*
+This is essentially the same as forward_iterator_test, but tests for reverse iterators
+*/
+template <typename ItType, typename Func1, typename Func2>
+void reverse_iterator_test(ArrayLinkedList<int>& list, Func1 begin_func, Func2 end_func) {
+    ItType it = begin_func(list);
+    
+    EXPECT_EQ(*it, 10000);
+    ++it;
+
+
+    for (int i = 49; i > -1; --i) { // Error in this loop
+        EXPECT_EQ(*it, i);
+        ++it;
+    }
+
+    ASSERT_EQ(*it, 49);
+
+    for (int i = 49; i > -1; --i) {
+        EXPECT_EQ(*it, i);
+        ++it;
+    }
+
+    EXPECT_EQ(it, end_func(list));
+}
+
+TEST_F(ArrayLinkedListTest, ReverseIterators) {
+    reverse_iterator_test<ArrayLinkedList<int>::reverse_iterator>(list,
+    [] (ArrayLinkedList<int>& param) {
+        return param.rbegin();
+    },
+    [] (ArrayLinkedList<int>& param) {
+        return param.rend();
+    });
+
+    reverse_iterator_test<ArrayLinkedList<int>::const_reverse_iterator>(list,
+    [] (const ArrayLinkedList<int>& param) {
+        return param.crbegin();
+    },
+    [] (const ArrayLinkedList<int>& param) {
+        return param.crend();
+    });
+
+    auto it = list.rbegin();
+    *it = 2;
+    EXPECT_EQ(*it, 2);
+    EXPECT_EQ(list.back(), 2);
 }
 
 TEST_F(ArrayLinkedListTest, Resize) {
