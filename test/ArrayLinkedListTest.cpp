@@ -20,10 +20,12 @@ struct ArrayLinkedListTest : public testing::Test {
 /*
 Tests the given iterator type (must be a forward iterator)
 The list should be unchanged after the function call (despite the list being changed in the process)
+The functions should take an ArrayLinkedList<int>& and return begin() and end() for that list
+They are workarounds for the method deduction not working anymore
 */
-template <typename ItType>
-void iterator_test(ArrayLinkedList<int>& list) {
-    ItType it = list.begin();
+template <typename ItType, typename Func1, typename Func2>
+void forward_iterator_test(ArrayLinkedList<int>& list, Func1 begin_func, Func2 end_func) {
+    ItType it = begin_func(list);
 
     for (int i = 0; i < 50; ++i) {
         ASSERT_EQ(*it, i);
@@ -44,7 +46,7 @@ void iterator_test(ArrayLinkedList<int>& list) {
 
     ItType itCopy = it;
     ++itCopy;
-    ASSERT_EQ(itCopy, list.end());
+    ASSERT_EQ(itCopy, end_func(list));
     ----it;
 
     // Go through backwards to test decrementing
@@ -64,14 +66,26 @@ void iterator_test(ArrayLinkedList<int>& list) {
             --it;
     }
 
-    ASSERT_EQ(it, list.begin());
+    ASSERT_EQ(it, begin_func(list));
 }
 
 
 TEST_F(ArrayLinkedListTest, Iterators) {
-    iterator_test<ArrayLinkedList<int>::iterator>(list);
+    forward_iterator_test<ArrayLinkedList<int>::iterator>(list, 
+    [](ArrayLinkedList<int>& param) {
+        return param.begin();
+    },
+    [](ArrayLinkedList<int>& param) {
+        return param.end();
+    });
 
-    iterator_test<ArrayLinkedList<int>::const_iterator>(list);
+    forward_iterator_test<ArrayLinkedList<int>::const_iterator>(list,
+    [](const ArrayLinkedList<int>& param) {
+        return param.cbegin();
+    },
+    [](const ArrayLinkedList<int>& param) {
+        return param.cend();
+    });
 }
 
 TEST_F(ArrayLinkedListTest, Resize) {
@@ -97,7 +111,13 @@ TEST_F(ArrayLinkedListTest, Resize) {
     list.resize(prev_list_size);
 
     // Run the iterator test again after resizing the list to the same size as before
-    iterator_test<ArrayLinkedList<int>::iterator>(list);
+    forward_iterator_test<ArrayLinkedList<int>::iterator>(list, 
+    [](ArrayLinkedList<int>& param) {
+        return param.begin();
+    },
+    [](ArrayLinkedList<int>& param) {
+        return param.end();
+    });
 
     list.resize(0);
     EXPECT_EQ(list.size(), 0);
@@ -107,7 +127,14 @@ TEST_F(ArrayLinkedListTest, Resize) {
 TEST_F(ArrayLinkedListTest, Copy) {
     ArrayLinkedList<int> copy(list);
 
-    iterator_test<ArrayLinkedList<int>::iterator>(copy);
+    forward_iterator_test<ArrayLinkedList<int>::iterator>(copy,
+    [](ArrayLinkedList<int>& param) {
+        return param.begin();
+    },
+    [](ArrayLinkedList<int>& param) {
+        return param.end();
+    });
+
     // Change copy and check if the original has changed
     for (int& key : copy)
         key = 100;
@@ -115,12 +142,24 @@ TEST_F(ArrayLinkedListTest, Copy) {
     for (int i = 0; i < 142; ++i)
         copy.push_back(100);
     
-    iterator_test<ArrayLinkedList<int>::iterator>(list);
+    forward_iterator_test<ArrayLinkedList<int>::iterator>(list, 
+    [](ArrayLinkedList<int>& param) {
+        return param.begin();
+    },
+    [](ArrayLinkedList<int>& param) {
+        return param.end();
+    });
 
     ArrayLinkedList<int> copy_of_copy(copy);
     // Assign copy to list again to test copy assignment (case that other.size() < this->size() in _copy_same_node_size())
     copy = list; 
-    iterator_test<ArrayLinkedList<int>::iterator>(copy);
+    forward_iterator_test<ArrayLinkedList<int>::iterator>(copy, 
+    [](ArrayLinkedList<int>& param) {
+        return param.begin();
+    },
+    [](ArrayLinkedList<int>& param) {
+        return param.end();
+    });
 
     // case that other.size() > this->size() in _copy_same_node_size()
     copy = copy_of_copy;
@@ -157,7 +196,13 @@ TEST_F(ArrayLinkedListTest, Move) {
         list.push_back(rand());
 
     list = std::move(move);
-    iterator_test<ArrayLinkedList<int>::iterator>(list);
+    forward_iterator_test<ArrayLinkedList<int>::iterator>(list, 
+    [](ArrayLinkedList<int>& param) {
+        return param.begin();
+    },
+    [](ArrayLinkedList<int>& param) {
+        return param.end();
+    });
 }
 
 TEST_F(ArrayLinkedListTest, Contains) {
@@ -212,11 +257,12 @@ TEST_F(ArrayLinkedListTest, Indexing) {
 /*
 This is the erase test abstracted for different iterator types (only forward iterators) to make
 testing the versions of erase with different iterators easier to test
+the function should take a reference to an ArrayLinkedList<int> and an int to search for
 */
-template <typename ItType>
-void erase_iterator_template(ArrayLinkedList<int>& list) {
+template <typename ItType, typename Func>
+void erase_iterator_template(ArrayLinkedList<int>& list, Func find_func) {
     size_t prev_size = list.size();
-    ItType it = list.find(40);
+    ItType it = find_func(list, 40);
     ItType after_it = list.erase(it);
     EXPECT_EQ(*after_it, 41);
 
@@ -244,9 +290,13 @@ void erase_iterator_template(ArrayLinkedList<int>& list) {
 
 TEST_F(ArrayLinkedListTest, Erase) {
     ArrayLinkedList<int> list_copy(list);
-    erase_iterator_template<ArrayLinkedList<int>::iterator>(list);
+    erase_iterator_template<ArrayLinkedList<int>::iterator>(list, [](ArrayLinkedList<int>& param, int to_search) {
+        return param.find(to_search);
+    });
     list = std::move(list_copy);
-    erase_iterator_template<ArrayLinkedList<int>::const_iterator>(list);
+    erase_iterator_template<ArrayLinkedList<int>::const_iterator>(list, [](const ArrayLinkedList<int>& param, int to_search) {
+        return param.find(to_search);
+    });
 }
 
 TEST_F(ArrayLinkedListTest, Size) {
