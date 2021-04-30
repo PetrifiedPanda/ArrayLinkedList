@@ -104,7 +104,7 @@ void reverse_iterator_test(ArrayLinkedList<int>& list, Func1 begin_func, Func2 e
     ++it;
 
 
-    for (int i = 49; i > -1; --i) { // Error in this loop
+    for (int i = 49; i > -1; --i) {
         EXPECT_EQ(*it, i);
         ++it;
     }
