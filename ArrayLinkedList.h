@@ -48,6 +48,9 @@ class ArrayLinkedList {
             node_size_(node_size),
             tail_size_(tail_size) {}
        public:
+
+        using value_type = T;
+        
         Iterator() :
             current_node_(nullptr),
             index_(0),
@@ -122,12 +125,12 @@ class ArrayLinkedList {
     };
 
    public:
+    using value_type = T;
+    using iterator = Iterator<false, false>;
+    using const_iterator = Iterator<true, false>;
 
-   using iterator = Iterator<false, false>;
-   using const_iterator = Iterator<true, false>;
-
-   using reverse_iterator = Iterator<false, true>;
-   using const_reverse_iterator = Iterator<true, true>;
+    using reverse_iterator = Iterator<false, true>;
+    using const_reverse_iterator = Iterator<true, true>;
 
     // Utility for copying, moving and freeing (Used in Constructors and copy / move assignment operators)
 
@@ -571,6 +574,4 @@ class ArrayLinkedList {
     const_iterator erase(const_iterator pos) {
         return erase_template(pos, cend());
     }
-
-    // TODO: Range deletion
 };
